@@ -1,0 +1,103 @@
+---
+title: "Quant Management Assignment#4"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+#This notebook contains the code for the Assignment 4.
+
+#Install lpSolveAPI package if not alresdy installed
+```{r}
+#install.packages("lpSolveAPI")
+```
+
+#Now, load the library
+```{r}
+library(lpSolveAPI)
+```
+
+#Let us set up the Weigelt Corporation problem. Note that we had 9 decision variables, and 11 constraints. 
+```{r}
+lprec <- make.lp(11, 9)
+```
+
+# set the maximization objective function
+```{r}
+set.objfn(lprec, c(420, 360, 300, 420, 360, 300, 420, 360, 300))
+lp.control(lprec,sense='max')
+```
+
+# set values for the rows (set the Left hand side constraints)
+```{r}
+set.row(lprec, 1, c(1, 1, 1), indices = c(1, 2, 3))
+set.row(lprec, 2, c(1, 1, 1), indices = c(4, 5, 6))
+set.row(lprec, 3, c(1, 1, 1), indices = c(7, 8, 9))
+set.row(lprec, 4, c(20, 15, 12), indices = c(1, 2, 3))
+set.row(lprec, 5, c(20, 15, 12), indices = c(4, 5, 6))
+set.row(lprec, 6, c(20, 15, 12), indices = c(7, 8, 9))
+set.row(lprec, 7, c(1, 1, 1), indices = c(1, 4, 7))
+set.row(lprec, 8, c(1, 1, 1), indices = c(2, 5, 8))
+set.row(lprec, 9, c(1, 1, 1), indices = c(3, 6, 9))
+set.row(lprec, 10, c(900, 900, 900, -750, -750 ,-750), indices = c(1, 2, 3, 4, 5, 6))
+set.row(lprec, 11, c(450, 450, 450, -900, -900, -900), indices = c(4, 5, 6, 7, 8, 9))
+```
+
+# set the right hand side values
+```{r}
+rhs <- c(700, 900, 450, 13000, 12000, 5000, 900, 1200, 750, 0, 0)
+set.rhs(lprec, rhs)
+```
+
+# set constraint type and set variable types and bound
+```{r}
+set.constr.type(lprec, c("<=", "<=", "<=", "<=", "<=", "<=", "<=", "<=", "<=", "=", "="))
+set.bounds(lprec, lower = rep(0, 9))
+```
+
+# finally, name the decision variables (column) and constraints (rows)
+```{r}
+lp.rownames <- c("Plant1Production", "Plant2Production", "Plant3Production", "Plant1Space", "Plant2Space", "Plant3Space", "Plant1Forecast", "Plant2Forecast", "Plant3Forecast", "Capacity1", "Capacity2")
+lp.colnames <- c("Plant1Large", "Plant1Medium", "Plant1Small","Plant2Large", "Plant2Medium", "Plant2Small","Plant3Large", "Plant3Medium", "Plant3Small")
+dimnames(lprec) <- list(lp.rownames, lp.colnames)
+```
+
+# view the linear program object to make sure it's correct
+```{r}
+lprec
+```
+
+#Save this into a file
+```{r}
+write.lp(lprec, filename = "weiglet.lp", type = "lp")
+```
+
+# now solve the model
+```{r}
+solve(lprec)
+```
+
+#Show the value of objective function, variables, constraints and slack
+```{r}
+get.objective(lprec)
+
+get.variables(lprec)
+
+get.constraints(lprec)
+
+get.constraints(lprec) - rhs
+```
+
+***
+#Also,We can now read the lp formulation using an lp file and solve it. I am using the same lp file which I have saved above.
+
+#read from file and solve it
+```{r}
+x <- read.lp("weiglet.lp") # create an lp object x
+x                          # display x
+
+solve(x)                   # Solution
+get.objective(x)           # get objective value
+get.variables(x)           # get values of decision variables
+get.constraints(x)         # get constraints
+```
