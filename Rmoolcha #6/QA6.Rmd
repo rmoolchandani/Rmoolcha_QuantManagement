@@ -1,0 +1,162 @@
+---
+title: "Quant Management Assignment#6"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+#This notebook contains the code for the Assignment 6.
+
+#Install lpSolveAPI package if not alresdy installed
+```{r}
+#install.packages("lpSolveAPI")
+```
+
+# Load the library
+```{r}
+library(lpSolveAPI)
+```
+
+# Solution 1 using inequalities
+# Let us set up the Linear problem. Note that we have 6 decision variables and 5 constraints. 
+```{r}
+lprec <- make.lp(5, 6)
+```
+
+# Set the minimization objective function
+```{r, results='hide'}
+set.objfn(lprec, c(622, 614, 630, 641, 645, 649))
+lp.control(lprec,sense='min')
+```
+
+# Set values for the rows (set the Left hand side constraints)
+```{r}
+set.row(lprec, 1, c(1, 1, 1), indices = c(1, 2, 3))
+set.row(lprec, 2, c(1, 1, 1), indices = c(4, 5, 6))
+set.row(lprec, 3, c(1, 1), indices = c(1, 4))
+set.row(lprec, 4, c(1, 1), indices = c(2, 5))
+set.row(lprec, 5, c(1, 1), indices = c(3, 6))
+```
+
+# Set the right hand side values
+```{r}
+rhs <- c(100, 120, 80, 60, 70)
+set.rhs(lprec, rhs)
+```
+
+# Set constraint type and set variable types and bound
+```{r}
+set.constr.type(lprec, c("<=", "<=", "=", "=", "="))
+set.bounds(lprec, lower = rep(0, 6))
+```
+
+# Finally, name the decision variables (column) and constraints (rows)
+```{r}
+lp.rownames <- c("CapacityA", "CapacityB", "DemandW1", "DemandW2", "DemandW3")
+lp.colnames <- c("PlantAW1", "PlantAW2", "PlantAW3","PlantBW1", "PlantBW2", "PlantBW3")
+dimnames(lprec) <- list(lp.rownames, lp.colnames)
+```
+
+# View the linear problem object to make sure it's correct
+```{r}
+lprec
+```
+
+# Save this into a file
+```{r}
+write.lp(lprec, filename = "AED.lp", type = "lp")
+```
+
+# Now, solve the model
+```{r}
+solve(lprec)
+```
+
+# Show the value of objective function, variables, constraints and slack
+```{r}
+get.objective(lprec)
+
+get.variables(lprec)
+
+get.constraints(lprec)
+
+get.constraints(lprec) - rhs
+```
+
+
+***
+# Solution 2: Using Dummy Variables 
+# Let us set up the Linear problem. Note that we had 8 decision variables and 6 constraints. 
+```{r}
+lprec1 <- make.lp(6, 8)
+```
+
+# Set the minimization objective function
+```{r, results='hide'}
+set.objfn(lprec1, c(622, 614, 630, 0, 641, 645, 649, 0))
+lp.control(lprec1, sense='min')
+```
+
+# Set values for the rows (set the Left hand side constraints)
+```{r}
+set.row(lprec1, 1, c(1, 1, 1, 1), indices = c(1, 2, 3, 4))
+set.row(lprec1, 2, c(1, 1, 1, 1), indices = c(5, 6, 7, 8))
+set.row(lprec1, 3, c(1, 1), indices = c(1, 5))
+set.row(lprec1, 4, c(1, 1), indices = c(2, 6))
+set.row(lprec1, 5, c(1, 1), indices = c(3, 7))
+set.row(lprec1, 6, c(1, 1), indices = c(4, 8))
+```
+
+# Set the right hand side values
+```{r}
+rhs <- c(100, 120, 80, 60, 70, 10)
+set.rhs(lprec1, rhs)
+```
+
+# Set constraint type and set variable types and bound
+```{r}
+set.constr.type(lprec1, c("=", "=", "=", "=", "=", "="))
+set.bounds(lprec1, lower = rep(0, 8))
+```
+
+# Finally, name the decision variables (column) and constraints (rows)
+```{r}
+lp.rownames <- c("CapacityA", "CapacityB", "DemandW1", "DemandW2", "DemandW3", "DemandW4")
+lp.colnames <- c("PlantAW1", "PlantAW2", "PlantAW3", "PlanntAW4", "PlantBW1", "PlantBW2", "PlantBW3", "PlantBW4")
+dimnames(lprec1) <- list(lp.rownames, lp.colnames)
+```
+
+# View the linear program object to make sure it's correct
+```{r}
+lprec1
+```
+
+# Now solve the model
+```{r}
+solve(lprec1)
+```
+
+# Show the value of objective function, variables, constraints and slack
+```{r}
+get.objective(lprec1)
+
+get.variables(lprec1)
+
+get.constraints(lprec1)
+
+get.constraints(lprec1) - rhs
+```
+
+***
+# Also,We can now read the lp formulation using an lp file and solve it. I am using the same lp file which I have saved above.
+
+# Read from file and solve it
+```{r}
+x <- read.lp("AED.lp")     # create an lp object x
+x                          # display x
+
+solve(x)                   # Solution
+get.objective(x)           # get objective value
+get.variables(x)           # get values of decision variables
+get.constraints(x)         # get constraints
+```
