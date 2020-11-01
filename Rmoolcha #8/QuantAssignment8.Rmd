@@ -1,0 +1,247 @@
+---
+title: "Quantitative Management Assignment#8"
+author: "Rakhee Moolchandani"
+date: "11/01/2020"
+output: 
+  pdf_document: default
+  html_document: default
+---
+
+# This notebook contains the code for the Assignment 8.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Using Benchmarking Libraries for DEA
+
+## We will now run DEA analysis using the benchmarking library. First, install the library, if you don't have it already.
+```{r,message=FALSE}
+#install.packages("Benchmarking")
+#install.packages("readxl")
+library(Benchmarking)
+library(readxl)
+```
+
+## Now, we read our input data. We will read the data from an excel file. Remember our problem had 6 DMUs with two inputs and two outputs.
+## Inputs: Staffing Labor, Cost of Supplies
+## Outputs: No of patient-days reimbursed by third party, No of patient-days reimbursed privately 
+```{r}
+#Read the data from excel file
+data <- read_excel("DEA.xlsx")
+#See the data
+data
+#Facility1 to Facility 6 are the DMUs
+namesDMU <- data[1]
+namesDMU
+#Lets see the Inputs 
+inputs <- data[c(2,3)]
+inputs
+#Now, see the outputs
+outputs <- data[c(4,5)]
+outputs
+#Create the input matrix
+x <- matrix(c(data$`Staff Hours per Day`,data$`Supplies per Day`),ncol = 2)
+#Lets see the input matrix
+x
+#Create the output matrix
+y <- matrix(c(data$`Reimbursed Patient-Days`,data$`Privately Paid Patient-Days`),ncol = 2)
+#Lets see the output matrix
+y
+#plot the graph for Inputs
+dea.plot.isoquant(x[,1],x[,2])
+#plot the graph for Outputs
+dea.plot.transform(y[,1],y[,2])
+```
+
+## We now run the DEA analysis for different assumptions:
+
+## We use the option of FDH, Free disposability hull, no convexity assumption 
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e1 <- dea(x,y,RTS = "FDH")
+#Show the Efficiency
+e1
+#Show the list of objects calculated
+str(e1)
+#Show the peers
+peers(e1)
+#Show the lambda
+lambda(e1)
+#Add the Efficiency, Peers & Lambda values in the table
+report1 <- cbind(data, e1$eff, e1$lambda, e1$peers)
+#Name the columns of the table
+colnames(report1)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6','Peers')
+#Sow the table
+report1
+#plot the graph for FDH Assumption
+dea.plot(x,y,RTS="FDH",txt = rownames(report1))
+```
+
+
+## The results indicate that DMUs 1, 2, 3 , 4, 5 and 6 all are efficient.
+
+
+## We use the option of CRS, Constant Return to Scale, convexity and free disposability 
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e2 <- dea(x,y,RTS = "CRS")
+#Show the Efficiency
+e2
+#Show the list of objects calculated
+str(e2)
+#Show the peers
+peers(e2)
+#Show the lambda
+lambda(e2)
+#Add the Efficiency & Lambda values in the table
+report2 <- cbind(data, e2$eff, e2$lambda)
+#Name the columns of the table
+colnames(report2)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6')
+#Sow the table
+report2
+#plot the graph for CRS Assumption
+dea.plot(x,y,RTS="CRS",txt = rownames(report2))
+```
+
+
+## The results indicate that DMUs 1, 2, 3 and 4 are efficient. DMU(5) is only 97.7% efficient, and DMU(6) is 86.7% efficient. 
+
+
+## We use the option of VRS, Variable returns to scale, convexity and free disposability
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e3 <- dea(x,y,RTS = "VRS")
+#Show the Efficiency
+e3
+#Show the list of objects calculated
+str(e3)
+#Show the peers
+peers(e3)
+#Show the lambda
+lambda(e3)
+#Add the Efficiency & Lambda values in the table
+report3 <- cbind(data, e3$eff, e3$lambda)
+#Name the columns of the table
+colnames(report3)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6')
+#Show the table
+report3
+#plot the graph for VRS Assumption
+dea.plot(x,y,RTS="VRS",txt = rownames(report3))
+```
+
+
+## The results indicate that DMUs 1, 2, 3, 4 and 5 are efficient. DMU(6) is only 89.6% efficient. 
+
+
+## We use the option of IRS, Increasing returns to scale, convexity and free disposability 
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e4 <- dea(x,y,RTS = "IRS")
+#Show the Efficiency
+e4
+#Show the list of objects calculated
+str(e4)
+#Show the peers
+peers(e4)
+#Show the lambda
+lambda(e4)
+#Add the Efficiency & Lambda values in the table
+report4 <- cbind(data, e4$eff, e4$lambda)
+#Name the columns of the table
+colnames(report4)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6')
+#Show the table
+report4
+#plot the graph for IRS Assumption
+dea.plot(x,y,RTS="IRS",txt = rownames(report4))
+```
+
+
+## The results indicate that DMUs 1, 2, 3, 4 and 5 are efficient. DMU(6) is only 89.6% efficient. 
+
+
+## We use the option of DRS, Decreasing returns to scale, convexity, down-scaling and free disposability
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e5 <- dea(x,y,RTS = "DRS")
+#Show the Efficiency
+e5
+#Show the list of objects calculated
+str(e5)
+#Show the peers
+peers(e5)
+#Show the lambda
+lambda(e5)
+#Add the Efficiency, Peers & Lambda values in the table
+report5 <- cbind(data, e5$eff, e5$lambda)
+#Name the columns of the table
+colnames(report5)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6')
+#Show the table
+report5
+#plot the graph for IRS Assumption
+dea.plot(x,y,RTS="DRS",txt = rownames(report5))
+```
+
+
+## The results indicate that DMUs 1, 2, 3 and 4 are efficient. DMU(5) is only 97.7% efficient, and DMU(6) is 86.7% efficient. 
+
+
+
+## We use the option of FRH, Additivity (scaling up and down, but only with integers), and free disposability 
+```{r}
+#DEA input or output efficiency measures, peers, lambdas and slacks
+e6 <- dea(x,y,RTS = "ADD")
+#Show the Efficiency
+e6
+#Show the list of objects calculated
+str(e6)
+#Show the peers
+peers(e6)
+#Show the lambda
+lambda(e6)
+#Add the Efficiency, Peers & Lambda values in the table
+report6 <- cbind(data, e6$eff, e6$lambda)
+#Name the columns of the table
+colnames(report6)<- c(names(namesDMU),names(inputs), names(outputs),'Efficiency','Lambda1','Lambda2','Lambda3','Lambda4','Lambda5','Lambda6')
+#Sow the table
+report6
+#plot the graph for FDH Assumption
+dea.plot(x,y,RTS="ADD",txt = rownames(report5))
+```
+
+
+## The results indicate that DMUs 1, 2, 3 , 4, 5 and 6 all are efficient.
+
+
+## Compare and Contrast the above Results
+## Lets compare the efficiency of all the DMUs for all the assumptions
+```{r}
+#Add the Efficiency of all the DMUs for all the Assumptions in a table
+EfficiencyReport <- cbind(data[,1],e1$eff,e2$eff,e3$eff,e4$eff,e5$eff,e6$eff)
+#Name the columns of the table
+colnames(EfficiencyReport) <- c(names(namesDMU),'FDH Efficiency','CRS Efficiency','VRS Efficiency','IRS Efficiency','DRS Efficiency','FRH Efficiency')
+#Show the Efficiency table
+EfficiencyReport
+#Let's compare the Efficiency of all the DMUs for all the assumptions using a plot
+#Concatenate the Efficiency
+spreadsheet <- cbind(e1$eff,e2$eff,e3$eff,e4$eff,e5$eff,e6$eff) 
+#Name the rows
+rownames(spreadsheet) <- c("Facility1","Facility2","Facility3","Facility4","Facility5","Facility6")
+#Name the columns
+colnames(spreadsheet) <- c ("FDH","CRS","VRS","IRS","DRS","FRH")
+#See the result
+spreadsheet
+#plot the graph
+barplot(t(spreadsheet),col=cm.colors(6),xlab = "DMUs", ylab="Efficiency",beside=TRUE)
+```
+
+## 1) Facility 1 is fully efficient for all the assumptions.
+## 2) Facility 2 is fully efficient for all the assumptions.
+## 3) Facility 3 is fully efficient for all the assumptions.
+## 4) Facility 4 is fully efficient for all the assumptions.
+## 5) Facility 5 is fully efficient for FDH, VRS, IRS and FRH assumptions. For assumptions DRS and CRS, it is 97.7% efficient.
+## 6) Facility 6 is fully efficient for FDH and FRS assumptions. For CRS and DRS assumptions, it is 86.7% efficient. For IRS and VRS assumptions, it is 89.6% efficient.
+
+
+
+
