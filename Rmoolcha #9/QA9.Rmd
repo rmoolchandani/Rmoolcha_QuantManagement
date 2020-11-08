@@ -1,0 +1,126 @@
+---
+title: "Quantitative Management Assignment#9"
+author: "Rakhee Moolchandani"
+date: "11/08/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+# This notebook contains the code for the Assignment 9.
+
+### This problem has all the Goals which are roughly comparable importance. Hence, it is a non preemptive goal programming model.
+### The Emax corporation problem includes all three possible types of goals: an upper, one-sided goal (Total profit); a two-sided goal (Employment level); and a lower, one-sided goal (Earnings Next year). Letting the decision variables x1, x2, x3 be the production rates of products 1, 2, and 3, respectively, Total Ptofit (P) can be expressed in terms of x1, x2 and x3 as:
+|               20x1+15x2+25x3 = Maximize
+### Similary, Employment level and Next year Earnings goals can be expressed as:
+|               6x1+4x2+5x3 =50
+|               x1+7x2+5x3 >=75
+### We see that the goal of total profit is to maximize it using the employment level and next years earnings goals as constrains, so these goals can be stated as
+|               Max z: 20x1+15x2+25x3
+|                s.t.: 6x1+4x2+5x3 =50
+|                      8x1+7x2+5x3 >=75
+### To express this overall objective mathematically, we introduce some auxiliary variables (extra variables that are helpful for formulating the model) y1 and y2, defined as follows:
+|               y1=6x1+4x2+5x3-50    (Employment Level minus the target)
+|               y2=8x1+7x2+5x3-75    (Earnings Next Year minus the Target)
+### Since each yi can be either positive or negative,we replace each one by the difference of two non negative variables:
+|               y1=y1p - y1m,  where y1p , y1m >=0
+|               y2=y2p - y2m,  where y2p , y2m >=0
+### y1p represents the penalty for employement level goal exceeding 50 and y1m is the penalty for employment level goal decreasing below 50. 
+### Similarly, y2m represents the penalty for not reaching the next year earnings and y2p for exceeding the next year earnings. 
+### Given these new auxiliary variables, the overall management's objective function can be expressed mathematically as (maximizing the profit ans subtracting the penalties)
+|               Max z: 20x1+15x2+25x3-6y1p+6y1m-3y2m;
+|                s.t.: 6x1+4x2+5x3-y1p+y1m =50
+|                      8x1+7x2+5x3-y2p+y2m =75
+### Since there is no penalty for exceeding the earnings next year, so y2p should not appear in the objective function.
+
+## Now, Lets formulate and solve the Linear programming model usnig lpSolveAPI.
+
+## Install lpSolveAPI package if not alresdy installed
+```{r}
+#install.packages("lpSolveAPI")
+```
+
+## Now, load the library
+```{r,message=FALSE}
+library(lpSolveAPI)
+```
+
+## Let us set up the Weigelt Corporation problem. Note that we had 9 decision variables, and 11 constraints. 
+```{r}
+lprec <- make.lp(2, 7)
+```
+
+## Set the maximization objective function
+```{r}
+set.objfn(lprec, c(20, 15, 25, -6, 6, 0, -3))
+lp.control(lprec,sense='max')
+```
+
+## Set values for the rows (set the Left hand side constraints)
+```{r}
+set.row(lprec, 1, c(6, 4, 5, -1 , 1, 0, 0), indices = c(1, 2, 3, 4, 5, 6, 7))
+set.row(lprec, 2, c(8, 7, 5,0,0,-1,1), indices = c(1, 2, 3, 4, 5, 6, 7))
+```
+
+## Set the right hand side values
+```{r}
+rhs <- c(50, 75)
+set.rhs(lprec, rhs)
+```
+
+## Set constraint type and set variable types and bound
+```{r}
+set.constr.type(lprec, c("=", "="))
+set.bounds(lprec, lower = rep(0, 7))
+```
+
+## Finally, name the decision variables (column) and constraints (rows)
+```{r}
+lp.rownames <- c("EmploymentLevelGoal", "NextYearEarningsGoal")
+lp.colnames <- c("x1", "x2", "x3","y1p", "y1m", "y2p","y2m")
+dimnames(lprec) <- list(lp.rownames, lp.colnames)
+```
+
+## View the linear program object to make sure it's correct
+```{r}
+lprec
+```
+
+## Save this into a file
+```{r}
+write.lp(lprec, filename = "emax.lp", type = "lp")
+```
+
+## Now solve the model
+```{r}
+solve(lprec)
+```
+
+## Show the value of objective function, variables, constraints and slack
+```{r}
+get.objective(lprec)
+
+get.variables(lprec)
+
+get.constraints(lprec)
+
+get.constraints(lprec) - rhs
+```
+
+***
+## Also,We can now read the lp formulation using an lp file and solve it. I am using the same lp file which I have saved above.
+
+## Read from file and solve it
+```{r}
+x <- read.lp("emax.lp")    # create an lp object x
+x                          # display x
+
+solve(x)                   # Solution
+get.objective(x)           # get objective value
+get.variables(x)           # get values of decision variables
+get.constraints(x)         # get constraints
+```
+
+### Applying the simplex method to this formulation yields an optimal solution x1 = 0, x2 = 0, x3 = 13, y1p = 25, y1m = 0, y2p = 0, y2m = 0. Therefore, y1 = 25 and y2 = 0, so the second goal of Next years Earning is fully satisfied, but the employment level goal of 50 is exceeded by 25 (2500 Employees). So the resulting penalty for devialting from the goals is 150. And so the value for the objective function is 225.
+
