@@ -1,0 +1,237 @@
+---
+title: "Quant Management Final Exam"
+author: "Rakhee Moolchandani"
+date: "12/16/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+
+## Purpose:
+The objective of this assignment is to define, formulate, and solve a mathematical optimization model.
+
+## Directions:
+The objective is to form groups. Assume that your class consists of 12 students, and you would like to form 4 groups of 3 students each. Your primary objective is to ensure that you maximize the chance that each group will do well on a class project. Here are the requirements to form groups:  
+
+* Each group should have exactly 3 students  
+* The objective is to maximize the chance of success for each group on a class project  
+
+
+There are several issues that must be addressed before solving the problem. Some of these are:  
+
+* What factors affect the success of groups? Define three factors that you feel affect the contributions that students make towards project success.  
+* How do the above factors combine to define success? Decide on how each of the factors contribute toward your definition of success.  
+* How will you collect data for these factors? For this assignment, randomly generate sensible data for each of the above three defined factors.  
+* What are your decision variables?  
+* What is your objective function?  
+* What are your constraints?  
+
+
+Formulate and solve the problem.  
+
+
+## Deliverables:  
+
+* R markdown file  
+* LP file  
+* PDF document with code output  
+* Narrative Presentation  
+
+
+## Solution:  
+
+**Assumptions**  
+Lets assume that we need to create groups for the final assignment of Quantitative Management modeling class. There are total 12 students in the class and we need to create not more than 4 groups. There should be equal number of students in each group. So we need to create 4 groups of 3 students each. Lets say that the three most important factors for the success of the group include:  
+
+* GPA of Students  
+* Academic Background  
+* Experience in Years  
+
+
+**Contribution of factors**  
+
+* GPA : GPA would be standardizes by dividing it with 4.  
+* Academic Background: This can be defined as 'Technical' or 'Non Technical'  
+* Experience in Years: This is the years of working experience one can have.  
+
+A combined score would be developed using all three measures. We can give the weights to factors mentioned above. And a relative coefficient can be calculated based on it for all the students.  
+
+**Data Collection**  
+All the information related to all the factors mentioned above can be collected from the college admission office. Since these are the basic measures which are recorded for each and every student during the application submission.  
+
+
+**Lets generate the data randomly**
+```{r}
+# Load dplyr library
+library(dplyr)
+
+# Generate random data for all three factors
+StudentData <- data.frame("Name" = c(1:12), "GPA" = c(3.80, 3.81,3.18, 3.57, 3.65, 3.17, 3.42, 3.13, 3.89, 3.91, 3.25, 3.85), "Academic_Background" = c("Tech", "Tech", "Non Tech", "Tech", "Non Tech", "Tech", "Tech", "Non Tech", "Non Tech", "Tech", "Non Tech", "Non Tech"), "Academic_Background_Measure" = c(.6,.6,.4,.6,.4,.6,.6,.4,.4,.6,.4,.4), "Experience" = c(9,5,9,5,9,6,7,7,6,5,5,7))
+
+# Lets see the data
+StudentData
+```
+
+## Formulation of the mathematical Problem  
+
+**Decision Variables**  
+Let us consider the decision variables as following:  
+
+$x_{ij}$ = 1 if student $j$ belong to group $i$, and 0 if not.  
+
++ $j$ refers to student = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 
+
++ $i$ refers to group = 1, 2, 3, 4 
+
+We need to create 48 decision variables. 12 for each group. 
+
+
+**Objective function**  
+
+This is maximization problem where we can maximize one factor or all of them. In my mathematical model, I have tried to maximize the GPA factor. 
+
+
+**Constraints**  
+
+* One student can belong to no more than one group  
+* One group can have no more or less than 3 students  
+* For each of the factors, each group must meet a minimum requirement.  
+
+
+**Equations**
+Objective function: 
+
+\begin{equation*}
+  \begin{split}
+    Max \: Z &= 3.80\sum_{i=1}^{4}x_{i1} + 3.81\sum_{i=1}^{4}x_{i2} + 3.18\sum_{i=1}^{4}x_{i3} +  3.57\sum_{i=1}^{4}x_{i4} + 3.65\sum_{i=1}^{4}x_{i5} + 3.17\sum_{i=1}^{4}x_{i6} \\
+    &+ 3.42\sum_{i=1}^{4}x_{i7} + 3.13\sum_{i=1}^{4}x_{i8} + 3.89\sum_{i=1}^{4}x_{i9} + 3.91\sum_{i=1}^{4}x_{i10} + 3.25\sum_{i=1}^{4}x_{i11} + 3.85\sum_{i=1}^{4}x_{i12}
+    \end{split}
+\end{equation*}
+S.T: 
+
+Groups
+
+$$ \sum_{j=1}^{12}x_{ij} = 3, where \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12$$
+
+
+Students
+
+$$ \sum_{i=1}^{4}x_{ij} = 1, where \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12$$
+GPA
+
+$$ \sum_{j=1}^{12}GPA_{j}x_{ij}  \geq 10.6, where \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12 $$
+
+Academic Background
+
+$$ \sum_{j=1}^{12} AB_{j}x_{ij} \geq 1.4,  where \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12 $$
+
+Experience
+
+$$ \sum_{j=1}^{12}Exp_{j}x_{ij}  \geq 20, where \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12 $$
+
+Integer constraint
+
+$$x_{ij} \: is \: integer, \: for \: i = 1, 2, 3, 4 \: and  \: j = 1,2,3,4, 5, ... , 12.$$
+
+
+
+**Lets solve the model**
+```{r}
+# load the lpSolveAPI library
+library(lpSolveAPI)
+
+# Read the lp file
+y <- read.lp("Final3.lp")
+
+# See the model
+y
+
+# Solve it
+solve(y)
+
+# Get the objective function
+get.objective(y)
+
+# Get the variables
+get.variables(y)
+
+# Get the constraints
+get.constraints(y)
+```
+
+
+**The Optimal Groups based on this model are:**  
+```{r}
+# Lets load the ggplot library
+library(ggplot2)
+
+# Assign the groups
+Group<- data.frame(Group = c(1,1,3,3,3,2,2,1,4,4,2,4))
+
+#Combine with the factors data
+StudentData <- cbind(StudentData, Group = Group$Group)
+
+# See the Students in the groups
+StudentData
+
+# Visualize the students in each group
+StudentData %>%
+  ggplot(aes(x = Group, y = as.factor(Name))) + 
+    geom_jitter(width = .05, height = 0, size = 4, alpha = .8,  color = "Red") +
+  labs(x = "Groups", y="Students") 
+```
+
+
+** Lets visualize the groups based on each fator**
+```{r}
+# See groups by GPA's
+plot(as.factor(StudentData$Group), StudentData$GPA, 
+     main="Groups based on GPAs", 
+     xlab="Group", 
+     ylab="GPA", 
+     col = topo.colors(4),
+     cex.main=1.5,
+     cex.axis = 1.5,
+     pch = 15)
+
+# See groups by Experience
+plot(as.factor(StudentData$Group), StudentData$Experience, 
+     main="Groups based on Experience", 
+     xlab="Group", 
+     ylab="Experience", 
+     col = topo.colors(4),
+     cex.main=1.5,
+     cex.axis = 1.5,
+     pch = 15)
+
+# See groups by Academic Background
+plot(as.factor(StudentData$Group), StudentData$Academic_Background_Measure, 
+     main="Groups by Academic Background", 
+     xlab="Group", 
+     ylab="Current Course Grade", 
+     col = topo.colors(4),
+     cex.main=1.5,
+     cex.axis = 1.5,
+     pch = 15)
+
+```
+
+From the plots seen above, we can identify the following things for each group:
+
++ Group 1 has the average GPA of 3.6, and average experience of 7 years. It has 2 technical and 1 non technical background students.
+
++ Group 2 has the average GPA of 3.3, and average experience of 6.6 years. It has 2 technical and 1 non technical background students.
+
++ Group 3 has the average GPA of 3.5, and average experience of 7.6 years. It has 1 technical and 2 non technical background students.
+ 
++ Group 4 has the average GPA of 3.9, and average experience of 6 years. It has 1 technical and 2 non technical background students.
+
+
+
+
+```{r}
